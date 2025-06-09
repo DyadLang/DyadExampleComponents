@@ -1,0 +1,38 @@
+component Controller
+  parameter kp::Real
+  parameter ki::Real
+  parameter kd::Real
+
+  # Initial value of the output
+  parameter y0::Real
+
+  variable x::Real
+  variable dx::Real
+  variable ddx::Real
+  variable y::Real
+  variable dy::Real
+
+  err_input = RealInput() [
+    { "Dyad": { "placement": { "icon": { "iconName": "error_input", "x1": -50, "y1": 450, "x2": 50, "y2": 550 } } } }
+  ]
+  ctr_output = RealOutput() [
+    { "Dyad": { "placement": { "icon": { "iconName": "control_output", "x1": 950, "y1": 450, "x2": 1050, "y2": 550 } } } }
+  ]
+relations
+  initial y = y0
+  der(x) = dx
+  der(dx) = ddx
+  der(y) = dy
+
+  err_input= x
+  ctr_output = y
+
+  dy = kp*(dx + ki*x + kd*ddx)
+metadata {
+  "Dyad": {
+    "icons": {
+      "default": "dyad://DyadExampleComponents/controller.svg"
+    }
+  }
+}
+end

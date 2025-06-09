@@ -1,0 +1,50 @@
+component Train
+  car1 = TrainCar(m=1000, L=0.9) [{
+    "Dyad": {"placement": {"icon": {"x1": 50, "y1": 100, "x2": 150, "y2": 200}}}
+  }]
+  coupler1 = TrainCarCoupler(c=c, d=d) [{
+    "Dyad": {"placement": {"icon": {"x1": 225, "y1": 100, "x2": 325, "y2": 200}}}
+  }]
+  car2 = TrainCar(m=1000, L=0.9) [{
+    "Dyad": {"placement": {"icon": {"x1": 400, "y1": 100, "x2": 500, "y2": 200}}}
+  }]
+  coupler2 = TrainCarCoupler(c=c, d=d) [{
+    "Dyad": {"placement": {"icon": {"x1": 575, "y1": 100, "x2": 675, "y2": 200}}}
+  }]
+  car3 = TrainCar(m=1000, L=0.9) [{
+    "Dyad": {"placement": {"icon": {"x1": 750, "y1": 100, "x2": 850, "y2": 200}}}
+  }]
+  coupler3 = TrainCarCoupler(c=c, d=d) [{
+    "Dyad": {"placement": {"icon": {"x1": 925, "y1": 100, "x2": 1025, "y2": 200}}}
+  }]
+  engine = TrainCar(m=2000, L=0.9) [{
+    "Dyad": {"placement": {"icon": {"x1": 1100, "y1": 100, "x2": 1200, "y2": 200}}}
+  }]
+  flange = Flange() [{
+    "Dyad": {"placement": {"icon": {"x1": 975, "y1": 475, "x2": 1025, "y2": 525}}}
+  }]
+  parameter c::TranslationalSpringConstant = 1e5
+  parameter d::DampingCoefficient = 1e5
+  # Initial Velocity
+  parameter v0::Velocity = 10
+  parameter a0::Acceleration = 0
+relations
+  initial car1.s = 0.45
+  initial car1.v = v0
+  initial car2.s = 1.55
+  initial car2.v = v0
+  initial car3.s = 2.55
+  initial car3.v = v0
+  initial engine.s = 3.55
+  initial engine.v = v0
+  initial engine.a = a0
+  initial coupler1.initial_stretch = 0
+  initial coupler2.initial_stretch = 0
+  connect(car1.flange_b, coupler1.flange_a) [{"Dyad": {"edges": [{"S": 1, "E": 2}]}}]
+  connect(car2.flange_a, coupler1.flange_b) [{"Dyad": {"edges": [{"S": 1, "E": 2}]}}]
+  connect(car2.flange_b, coupler2.flange_a) [{"Dyad": {"edges": [{"S": 1, "E": 2}]}}]
+  connect(car3.flange_a, coupler2.flange_b) [{"Dyad": {"edges": [{"S": 1, "E": 2}]}}]
+  connect(car3.flange_b, coupler3.flange_a) [{"Dyad": {"edges": [{"S": 1, "E": 2}]}}]
+  connect(engine.flange_a, coupler3.flange_b) [{"Dyad": {"edges": [{"S": 1, "E": 2}]}}]
+  connect(engine.flange_b, flange)
+end

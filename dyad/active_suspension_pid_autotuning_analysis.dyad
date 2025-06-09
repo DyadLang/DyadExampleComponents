@@ -1,0 +1,18 @@
+analysis ActiveSuspensionPIDAutotuningAnalysis
+  extends PIDAutotuningAnalysis(
+    measurement = "y",
+    control_input = "u",
+    step_input = "u",
+    step_output = "y",
+    Ts = 0.01,
+    duration = 10.0,
+    Ms = 1.2,
+    Mt = 1.1,
+    Mks = 3e4,
+    ki_lb = 2000,
+    wl = 1e-2,
+    wu = 1e3
+  )
+
+  model = ActiveSuspension()
+end

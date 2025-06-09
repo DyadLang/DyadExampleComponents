@@ -1,0 +1,9 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DyadEcosystemDependencies = "7bc808db-8006-421e-b546-062440d520b7"
+Latexify = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
+OrdinaryDiffEqDefault = "50262376-6c5a-4cf5-baba-aaf4f84d72d7"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"

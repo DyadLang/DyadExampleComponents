@@ -1,0 +1,45 @@
+partial analysis PIDAutotuningAnalysis
+  extends Analysis
+  model::Dyad.EmptyComponent = Dyad.EmptyComponent()
+
+  parameter measurement::String
+  parameter control_input::String
+  parameter step_input::String
+  parameter step_output::String
+
+  parameter ref::Real = 0.0
+  parameter Ts::Real(min=1e-32)
+  parameter duration::Time(min=1e-32)
+  parameter Ms::Real(min=1.0)
+  parameter Mt::Real(min=1.0)
+  parameter Mks::Real(min=1e-32)
+  parameter disc::String = "tustin"
+
+  parameter kp_lb::Real = 0.0
+  parameter ki_lb::Real = 0.0
+  parameter kd_lb::Real = 0.0
+  parameter Tf_lb::Real = 1e-16
+
+  parameter kp_ub::Real = 1e300
+  parameter ki_ub::Real = 1e300
+  parameter kd_ub::Real = 1e300
+  parameter Tf_ub::Real = 1e300
+
+  parameter kp_guess::Real = -1
+  parameter ki_guess::Real = -1
+  parameter kd_guess::Real = -1
+  parameter Tf_guess::Real = -1
+
+  parameter timeweight::Boolean = false
+  parameter filter_order::Integer = 2
+  parameter optimize_d::Boolean = false
+
+  parameter wl::Real = -1
+  parameter wu::Real = -1
+
+  parameter num_frequencies::Integer = 200
+
+  metadata {
+    "using": "DyadControlSystems: AbstractPIDAutotuningAnalysisSpec, PIDAutotuningAnalysisSpec"
+  }
+end

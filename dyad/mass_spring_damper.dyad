@@ -1,0 +1,50 @@
+component MassSpringDamper
+  mass = TranslationalComponents.Mass(m=m, L=0.0, g=g, theta=theta) [{
+    "Dyad": {"placement": {"icon": {"x1": 200, "y1": 100, "x2": 400, "y2": 300}}}
+  }]
+  spring_damper = TranslationalComponents.SpringDamper(d=d, c=c) [{
+    "Dyad": {"placement": {"icon": {"x1": 600, "y1": 400, "x2": 800, "y2": 600}}}
+  }]
+  flange_m = Flange() [{
+    "Dyad": {"placement": {"icon": {"x1": -50, "y1": 450, "x2": 50, "y2": 550}}}
+  }]
+  flange_sd = Flange() [{
+    "Dyad": {"placement": {"icon": {"x1": 950, "y1": 450, "x2": 1050, "y2": 550}}}
+  }]
+  # Component mass
+  parameter m::Dyad.Mass
+  # Stiffness of the spring
+  parameter c::TranslationalSpringConstant
+  # Damping coefficient
+  parameter d::DampingCoefficient
+  # Gravity
+  parameter g::Acceleration
+  # Initial position
+  parameter s0::Dyad.Position
+  # Initial velocity
+  parameter v0::Velocity = 0
+  # Initial acceleration
+  parameter a0::Acceleration = 0
+  # Angle of motion with +X axis
+  parameter theta::Angle = 0
+relations
+  initial mass.s = s0
+  initial mass.v = v0
+  initial mass.a = a0
+  connect(flange_m, mass.flange_b, spring_damper.flange_a) [{
+    "Dyad": {
+      "edges": [
+        {"S": -1, "M": [{"x": 100, "y": 150}], "E": 1},
+        {"S": -1, "E": 2},
+        {"S": -1, "E": 3}
+      ],
+      "junctions": [{"x": 300, "y": 500}]
+    }
+  }]
+  connect(spring_damper.flange_b, flange_sd) [{"Dyad": {"edges": [{"S": 2, "E": 1}]}}]
+metadata {
+  "Dyad": {
+    "icons": {"default": "dyad://DyadExampleComponents/mass_spring_damper.svg"}
+  }
+}
+end

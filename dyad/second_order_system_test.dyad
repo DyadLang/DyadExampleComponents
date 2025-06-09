@@ -1,0 +1,24 @@
+analysis SecondOrderSystemTransient
+  extends TransientAnalysis(alg="auto", start=0, stop=5)
+  model = SecondOrderSystemTest()
+end
+
+component SecondOrderSystemTest
+  src = BlockComponents.Sine(amplitude=1, frequency=5) [{"Dyad": {"placement": {"icon": {"x1": 100, "y1": 100, "x2": 300, "y2": 300}}}}]
+  sys = SecondOrderSystem(k1=2, k2=3, k3=4) [{"Dyad": {"placement": {"icon": {"x1": 400, "y1": 100, "x2": 600, "y2": 300}}}}]
+  collector = RealInput() [{"Dyad": {"placement": {"icon": {"x1": 700, "y1": 100, "x2": 900, "y2": 300}}}}]
+relations
+  connect(src.y, sys.xdd) [{"Dyad": {"edges": [{"S": 1, "E": 2}]}}]
+  collector = sys.sum.y
+metadata {
+  "Dyad": {
+    "tests": {
+      "case1": {
+        "stop": 10,
+        "atol": {"collector": 0.0001},
+        "expect": {"final": {"collector": 1.2778338688703827}}
+      }
+    }
+  }
+}
+end

@@ -1,0 +1,23 @@
+name: "Release"
+
+on:
+  push:
+    # Run on release branches scenarios supported by the
+    # `@ethima/semantic-release-configuration`
+    branches:
+      - "main"
+      - "release-**"
+
+jobs:
+  release:
+    name: "Release"
+    runs-on: self-hosted
+    steps:
+      - name: "Run Dyad release process"
+        uses: "JuliaComputing/dyad-release-process@87d969a29193b8fabc023c9d5497adaa95d3ce90" # v2.0.2
+        with:
+          encoded-juliahub-token: "${{ secrets.JULIAHUB_TOKEN_ENCODED }}"
+          release-manager-app-id: "${{ secrets.JULIASIM_RELEASE_MANAGER_APP_ID }}"
+          release-manager-private-key: "${{ secrets.JULIASIM_RELEASE_MANAGER_PRIVATE_KEY }}"
+          julia-pkg-registry: "JSMLComponents"
+          ssh-key: "${{ secrets.JULIASIM_REGISTRY_SSH_KEY }}"

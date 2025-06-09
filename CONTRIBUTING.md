@@ -1,0 +1,2 @@
+- Auto-compile code by setting `"dyad-studio.autoCompile": true`.
+- We follow [SciML's contribution guide](https://github.com/SciML/ColPrac).

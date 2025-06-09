@@ -1,0 +1,10 @@
+component TrainCar
+  extends TranslationalComponents.Mass
+metadata {
+  "Dyad": {
+    "icons": {
+      "default": "dyad://DyadExampleComponents/mass.svg"
+    }
+  }
+}
+end

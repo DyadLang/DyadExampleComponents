@@ -1,0 +1,48 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>JuliaComputing/dyad-dependency-management:default.json5"],
+  "packageRules": [
+    {
+      "description": "Trigger breaking release for breaking updates of transparently exposed dependencies.",
+      "matchPackageNames": [
+        "JuliaComputing/BlockComponents",
+        "JuliaComputing/DyadEcosystemDependencies.jl",
+        "JuliaComputing/DyadInterface.jl",
+        "JuliaComputing/TranslationalComponents"
+      ],
+      "matchUpdateTypes": ["major"],
+      "commitMessagePrefix": "feat(deps)!:"
+    },
+    {
+      "description": "Trigger feature release for feature updates of transparently exposed dependencies.",
+      "matchPackageNames": [
+        "JuliaComputing/BlockComponents",
+        "JuliaComputing/DyadEcosystemDependencies.jl",
+        "JuliaComputing/DyadInterface.jl",
+        "JuliaComputing/TranslationalComponents"
+      ],
+      "matchUpdateTypes": ["minor"],
+      "semanticCommitType": "feat"
+    },
+    {
+      "description": "Trigger fix release for fix and digest updates of transparently exposed dependencies.",
+      "matchPackageNames": [
+        "JuliaComputing/BlockComponents",
+        "JuliaComputing/DyadEcosystemDependencies.jl",
+        "JuliaComputing/DyadInterface.jl",
+        "JuliaComputing/TranslationalComponents"
+      ],
+      "matchUpdateTypes": ["patch", "digest"],
+      "semanticCommitType": "fix"
+    },
+    {
+      "description": "Group Dyad related repositories together.",
+      "groupName": "Dyad ecosystem and component libraries",
+      "matchPackageNames": [
+        "/^JuliaComputing\/.+Components$/",
+        "JuliaComputing/DyadEcosystemDependencies.jl",
+        "JuliaComputing/DyadInterface.jl"
+      ]
+    }
+  ]
+}

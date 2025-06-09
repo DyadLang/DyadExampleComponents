@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags: ['*']
+  pull_request:
+
+env:
+  JULIA_PKG_SERVER: internal.juliahub.com
+
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
+
+    runs-on: self-hosted
+
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '1.10.8'
+          - '1.11.3'
+        os:
+          - self-hosted
+        arch:
+          - x64
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+
+      - name: "Set up private JuliaHub registries"
+        uses: "JuliaComputing/set-up-private-juliahub-registries@a60c35b0463eb38fcb438d0222ca56ce422d970a" # v1.2.1
+        with:
+          encoded-juliahub-token: "${{ secrets.JULIAHUB_TOKEN_ENCODED }}"
+          ssh-key: "${{ secrets.JULIASIM_REGISTRY_SSH_KEY }}"
+          enable-JSMLComponents: "true"
+
+      - uses: julia-actions/julia-buildpkg@v1
+
+      - uses: julia-actions/julia-runtest@v1

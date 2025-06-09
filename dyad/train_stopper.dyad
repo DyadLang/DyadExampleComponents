@@ -1,0 +1,44 @@
+component TrainStopper
+  parameter v0::Velocity = 10
+  train = Train(v0 = v0) [
+    { "Dyad": { "placement": { "icon": { "x1": 100, "y1": 100, "x2": 300, "y2": 300 } } } }
+  ]
+  stopper = Stopper(c = 1e1, d = 1e4) [
+    { "Dyad": { "placement": { "icon": { "x1": 400, "y1": 100, "x2": 600, "y2": 300 } } } }
+  ]
+  reference = TranslationalComponents.Fixed() [
+    { "Dyad": { "placement": { "icon": { "x1": 700, "y1": 100, "x2": 900, "y2": 300 } } } }
+  ]
+relations
+  connect(train.flange, stopper.flange_a) [{
+    "Dyad": {
+        "edges": [
+          { "S": 1, "E": 2}
+        ]
+    }
+  }]
+  connect(stopper.flange_b, reference.flange) [{
+    "Dyad": {
+        "edges": [
+          { "S": 1, "E": 2}
+        ]
+    }
+  }]
+metadata {
+  "Dyad" : {
+    "tests" : {
+      "" : {
+        "stop" : 5,
+        "atol" : {
+          "train.engine.v" : 1e-2
+        },
+        "expect" : {
+          "final" : {
+            "train.engine.v" : -0.0110
+          }
+        }
+      }
+    }
+  }
+}
+end

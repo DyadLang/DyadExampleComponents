@@ -1,0 +1,43 @@
+name: "Validate and Optimize SVGs"
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/svgo.yml"
+      - "assets/**"
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+permissions:
+  contents: "read"
+  packages: "read"
+
+jobs:
+  svgo:
+    name: "SVGO"
+    runs-on: "self-hosted"
+
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332" # v4.1.7
+        with:
+          # Ensure the actual branch is checked out for pull requests
+          ref: "${{ github.head_ref }}"
+
+      - name: "Setup Node.js"
+        uses: "actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8" # v4.0.2
+        with:
+          node-version: "20"
+
+      - name: "Optimize SVGs"
+        run: "npx --package=svgo --yes svgo --folder=assets"
+
+      - name: "Report if any formatting issues have been detected"
+        run: |
+          if ! git diff --exit-code --name-only assets; then
+            printf "\033[31mSome SVGs have not been optimized!!!\n\033[0m"
+            printf "\033[33mPlease run \`npx --package=svgo --yes svgo --folder=assets\` and commit the results.\033[0m"
+            exit 1
+          fi

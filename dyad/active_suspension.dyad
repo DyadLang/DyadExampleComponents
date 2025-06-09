@@ -1,0 +1,110 @@
+analysis ActiveSuspensionTransient
+  extends TransientAnalysis(alg="auto", abstol=10m, reltol=1m, start=0, stop=10)
+  model = ActiveSuspension()
+end
+
+component ActiveSuspension
+  wheel = MassSpringDamper(m=wheel_mass, d=wheel_damping, c=wheel_stiffness, g=-10, theta=pi/2, s0=wheel_initial_position) [{
+    "Dyad": {"placement": {"icon": {"x1": 825, "y1": 675, "x2": 925, "y2": 775, "rot": 90}}}
+  }]
+  car_and_suspension = MassSpringDamper(m=car_mass, d=suspension_damping, c=suspension_stiffness, g=-10, theta=pi/2, s0=suspension_initial_position) [{
+    "Dyad": {"placement": {"icon": {"x1": 825, "y1": 500, "x2": 925, "y2": 600, "rot": 90}}}
+  }]
+  seat = MassSpringDamper(m=human_and_seat_mass, d=seat_damping, c=seat_stiffness, g=-10, theta=pi/2, s0=seat_initial_position) [{
+    "Dyad": {"placement": {"icon": {"x1": 825, "y1": 325, "x2": 925, "y2": 425, "rot": 90}}}
+  }]
+  road_data = RoadData() [{"Dyad": {"placement": {"icon": {"x1": 500, "y1": 730, "x2": 600, "y2": 830}}}}]
+  road = SimplePosition() [{"Dyad": {"placement": {"icon": {"x1": 650, "y1": 730, "x2": 750, "y2": 830}}}}]
+  force = TranslationalComponents.Force() [{
+    "Dyad": {
+      "placement": {"icon": {"x1": 650, "y1": 325, "x2": 750, "y2": 425, "rot": 270}}
+    }
+  }]
+  pid = Controller(kp=kp, ki=ki, kd=kd, y0=0) [{"Dyad": {"placement": {"icon": {"x1": 350, "y1": 325, "x2": 450, "y2": 425}}}}]
+  err = BlockComponents.Add(k1=1, k2=-1) [{"Dyad": {"placement": {"icon": {"x1": 200, "y1": 325, "x2": 300, "y2": 425}}}}]
+  set_point = BlockComponents.Constant(k=1.5) [{"Dyad": {"placement": {"icon": {"x1": 50, "y1": 355, "x2": 150, "y2": 455}}}}]
+  seat_pos = TranslationalComponents.PositionSensor() [{
+    "Dyad": {
+      "placement": {"icon": {"x1": 700, "y1": 150, "x2": 800, "y2": 250, "rot": 180}}
+    }
+  }]
+  flip = BlockComponents.Gain(k=-1) [{"Dyad": {"placement": {"icon": {"x1": 500, "y1": 325, "x2": 600, "y2": 425}}}}]
+  parameter wheel_mass::Dyad.Mass = 25
+  parameter wheel_stiffness::TranslationalSpringConstant = 1e2
+  parameter wheel_damping::DampingCoefficient = 1e4
+  parameter car_mass::Dyad.Mass = 1000
+  parameter suspension_stiffness::TranslationalSpringConstant = 1e4
+  parameter suspension_damping::DampingCoefficient = 10
+  parameter human_and_seat_mass::Dyad.Mass = 100
+  parameter seat_stiffness::TranslationalSpringConstant = 1000
+  parameter seat_damping::DampingCoefficient = 1
+  parameter wheel_initial_position::Dyad.Position = 0.5
+  parameter suspension_initial_position::Dyad.Position = 1
+  parameter seat_initial_position::Dyad.Position = 1.5
+  parameter kd::Real = 20
+  parameter ki::Real = 0.2
+  parameter kp::Real = 1
+relations
+  u: analysis_point(flip.y, force.f)
+  y: analysis_point(err.y, pid.err_input)
+  connect(road.s, road_data.y) [{"Dyad": {"edges": [{"S": 2, "E": 1}]}}]
+  connect(road.flange, wheel.flange_sd) [{"Dyad": {"edges": [{"S": 2, "M": [{"x": 875, "y": 780}], "E": 1}]}}]
+  connect(wheel.flange_m, car_and_suspension.flange_sd) [{"Dyad": {"edges": [{"S": 2, "E": 1}]}}]
+  connect(car_and_suspension.flange_m, seat.flange_sd, force.flange_a) [{
+    "Dyad": {
+      "edges": [
+        {"S": -1, "E": 1},
+        {"S": -1, "E": 2},
+        {"S": -1, "M": [{"x": 700, "y": 440}], "E": 3}
+      ],
+      "junctions": [{"x": 875, "y": 440}]
+    }
+  }]
+  connect(seat.flange_m, force.flange_b, seat_pos.flange) [{
+    "Dyad": {
+      "edges": [
+        {"S": -1, "E": 1},
+        {"S": -1, "M": [{"x": 700, "y": 310}], "E": 2},
+        {"S": -1, "M": [{"x": 875, "y": 200}], "E": 3}
+      ],
+      "junctions": [{"x": 875, "y": 310}]
+    }
+  }]
+  connect(err.u1, seat_pos.s) [{
+    "Dyad": {"edges": [{"S": 2, "M": [{"x": 182, "y": 200}, {"x": 182, "y": 345}], "E": 1}]}
+  }]
+  connect(err.u2, set_point.y) [{"Dyad": {"edges": [{"S": 2, "E": 1}]}}]
+  connect(err.y, pid.err_input) [{"Dyad": {"edges": [{"S": 2, "E": 1}]}}]
+  connect(pid.ctr_output, flip.u) [{"Dyad": {"edges": [{"S": 2, "E": 1}]}}]
+  connect(flip.y, force.f) [{"Dyad": {"edges": [{"S": 2, "E": 1}]}}]
+metadata {
+  "Dyad": {
+    "tests": {
+      "case1": {
+        "stop": 10,
+        "expect": {
+          "initial": {
+            "wheel.spring_damper.initial_stretch": 112,
+            "car_and_suspension.spring_damper.initial_stretch": 0.6,
+            "seat.spring_damper.initial_stretch": 0.5
+          },
+          "final": {
+            "wheel.spring_damper.initial_stretch": 112,
+            "car_and_suspension.spring_damper.initial_stretch": 0.6,
+            "seat.spring_damper.initial_stretch": 0.5
+          },
+          "signals": [
+            "wheel.mass.s",
+            "seat.mass.s",
+            "car_and_suspension.mass.s",
+            "wheel.mass.v",
+            "car_and_suspension.mass.v",
+            "seat.mass.v",
+            "pid.y"
+          ]
+        }
+      }
+    }
+  }
+}
+end

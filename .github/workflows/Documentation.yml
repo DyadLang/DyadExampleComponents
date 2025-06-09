@@ -1,0 +1,105 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+env:
+  JULIA_PKG_SERVER: internal.juliahub.com
+  NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  JULIA_PKG_PRECOMPILE_AUTO: 0
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check_commit:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Check if the documentation should be generated
+        id: check_commit
+        run: |
+          message=$(git log -1 --pretty=format:'%s')
+          re="\[(skip-docs-ci)\]"
+          if [[ $message =~ $re ]]; then
+            echo "generate_documentation=false" >> $GITHUB_OUTPUT
+            echo "$message -> Found annotation to skip documentation generation, skipping documentation generation"
+          else
+            echo "generate_documentation=true" >> $GITHUB_OUTPUT
+            echo "$message -> Generating documentation"
+          fi
+    outputs:
+      generate_documentation: ${{ steps.check_commit.outputs.generate_documentation }}
+
+  docs:
+    needs: check_commit
+    if: needs.check_commit.outputs.generate_documentation
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: read
+      statuses: write
+      packages: read
+    runs-on: self-hosted
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: "Setup Node.js"
+        uses: "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020" # v4.4.0
+        with:
+          node-version: "22"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@juliacomputing"
+
+      # Ensure an SSH agent is running if credentials are available, so:
+      # - Julia can install packages through Git over SSH if necessary
+      # - `dyad-lang` can be cloned
+      - uses: "webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd" # v0.9.1
+        with:
+          ssh-private-key: "${{ secrets.JULIASIM_REGISTRY_SSH_KEY }}"
+
+      - name: "Compile DyadLang"
+        run: |
+          git clone git@github.com:JuliaComputing/dyad-lang.git
+          cd dyad-lang
+          npm i
+          npm run build
+          mv apps/cli/dyad "${GITHUB_WORKSPACE}/dyad-cli"
+          cd "${GITHUB_WORKSPACE}"
+          rm -rf dyad-lang
+
+      - uses: julia-actions/setup-julia@5c9647d97b78a5debe5164e9eec09d653d29bd71 # v2.6.1
+        with:
+          # Match the version of JuliaSim distribution
+          version: "1.11.3"
+
+      - name: "Set up private JuliaHub registries"
+        uses: "JuliaComputing/set-up-private-juliahub-registries@a60c35b0463eb38fcb438d0222ca56ce422d970a" # v1.2.1
+        with:
+          encoded-juliahub-token: "${{ secrets.JULIAHUB_TOKEN_ENCODED }}"
+          ssh-key: "${{ secrets.JULIASIM_REGISTRY_SSH_KEY }}"
+
+      - name: "Instantiate the package"
+        run: julia --project --eval 'using Pkg; Pkg.instantiate()'
+
+      - name: "Generate documentation"
+        run: "${GITHUB_WORKSPACE}/dyad-cli document ${GITHUB_REPOSITORY#*/}"
+
+      - name: "Install dependencies"
+        run: julia --project=docs --eval 'using Pkg;
+          Pkg.develop(PackageSpec(path=pwd()));
+          Pkg.instantiate()'
+
+      - name: "Build Documentation"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: julia -t 40 --color=yes --project=docs/ docs/make.jl

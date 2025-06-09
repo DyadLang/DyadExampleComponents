@@ -1,0 +1,24 @@
+component Stopper
+  extends TranslationalComponents.PartialTwoFlanges
+  parameter c::TranslationalSpringConstant
+  parameter d::DampingCoefficient
+  variable v_a::Velocity
+  variable v_b::Velocity
+  variable s_a::Dyad.Position
+  variable s_b::Dyad.Position
+  variable f::Force
+relations
+  flange_a.s = s_a
+  flange_b.s = s_b
+
+  flange_a.f = f
+  flange_b.f = -f
+
+  D(s_a) = v_a
+  D(s_b) = v_b
+
+  f = if s_a >= s_b then
+    (v_a - v_b)*d + c*(s_a - s_b)
+  else
+    0
+end
